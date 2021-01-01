@@ -7,7 +7,7 @@ import sys
 import winreg
 class pydualsense:
 
-    def __init__(self, verbose: bool = False) -> None:#
+    def __init__(self, verbose: bool = False) -> None:
         # TODO: maybe add a init function to not automatically allocate controller when class is declared
         self.verbose = verbose
         self.receive_buffer_size = 64
@@ -28,6 +28,7 @@ class pydualsense:
 
         self.state = DSState() # controller states
 
+        self.get_mac_address() # gets mac address from controller report
 
         # thread for receiving and sending
         self.ds_thread = True
@@ -125,6 +126,19 @@ class pydualsense:
         if intensity > 255 or intensity < 0:
             raise Exception('maximum intensity is 255')
         self.rightMotor = intensity
+
+    def get_mac_address(self):
+        # report id 9 response to pairing info
+        DS_FEATURE_REPORT_PAIRING_INFO = 9
+        DS_FEATURE_REPORT_PAIRING_INFO_SIZE = 64
+
+        mac_report = self.device.get_feature_report(DS_FEATURE_REPORT_PAIRING_INFO, DS_FEATURE_REPORT_PAIRING_INFO_SIZE)
+        # first bytes ignored
+        # 2..7 is the MAC in big edian
+        mac_address = bytearray(mac_report[1:7])
+        # reverse it to get the right mac address
+        mac_address.reverse()
+        self.mac_address = ':'.join(format(x, '02x') for x in mac_address).upper()
 
 
     def sendReport(self):

@@ -4,8 +4,9 @@ pip install tkinter
 ```bash 
 pip install autopy
 ```
-```bash 
-python ./examples/controller_demo.py
+```bash
+cd ./examples/ 
+python controller_demo.py
 ```
 ![](controllergui.PNG)
 

@@ -28,19 +28,7 @@ class ControllerPixelObject:
     self.width = width
     self.height = height
 
-    hsv_color = [0.1,1,0.75]
-    rgb_color = colorsys.hsv_to_rgb(hsv_color[0], hsv_color[1], hsv_color[2])
-    hex_color = ('#%02x%02x%02x'%(round(rgb_color[0]*255),round(rgb_color[1]*255),round(rgb_color[2]*255)))
-
-    self.hex_color_active = hex_color
-    self.hsv_color_active = hsv_color
-
-    hsv_color = [0.1,1,0.5]
-    rgb_color = colorsys.hsv_to_rgb(hsv_color[0], hsv_color[1], hsv_color[2])
-    hex_color = ('#%02x%02x%02x'%(round(rgb_color[0]*255),round(rgb_color[1]*255),round(rgb_color[2]*255)))
-
-    self.hex_color_inactive = hex_color
-    self.hsv_color_inactive = hsv_color
+    self.set_active_and_inactive_color_by_hue(0.5)
 
     self.l2 = PixelObject(2, 1 , 3, 2, "blue")
     self.l2.boolean_pressed_name = "L2"
@@ -135,7 +123,7 @@ class ControllerPixelObject:
     self.rbordertop1 = PixelObject(lbordertop1_mirrored_x_y_w_h[0], lbordertop1_mirrored_x_y_w_h[1], lbordertop1_mirrored_x_y_w_h[2], lbordertop1_mirrored_x_y_w_h[3], "black")
 
 
-    self.lborderbottom1 = PixelObject(2, 17, 4, 1, "black")
+    self.lborderbottom1 = PixelObject(2, 17, 4, 1, self.hex_color_inactive)
     lborderbottom1_mirrored_x_y_w_h = (self.get_mirrored_x_y_w_h(self.lborderbottom1))
     self.rborderbottom1 = PixelObject(lborderbottom1_mirrored_x_y_w_h[0], lborderbottom1_mirrored_x_y_w_h[1], lborderbottom1_mirrored_x_y_w_h[2], lborderbottom1_mirrored_x_y_w_h[3], "black")
 
@@ -147,13 +135,28 @@ class ControllerPixelObject:
     lborder3_mirrored_x_y_w_h = (self.get_mirrored_x_y_w_h(self.lborder3))
     self.rborder3 = PixelObject(lborder3_mirrored_x_y_w_h[0], lborder3_mirrored_x_y_w_h[1], lborder3_mirrored_x_y_w_h[2], lborder3_mirrored_x_y_w_h[3], "black")
     
-    self.lborder4 = PixelObject(7, 17-3, 3, 1, "black")
+    self.lborder4 = PixelObject(6, 17-3, 4, 1, "black")
     lborder4_mirrored_x_y_w_h = (self.get_mirrored_x_y_w_h(self.lborder4))
     self.rborder4 = PixelObject(lborder4_mirrored_x_y_w_h[0], lborder4_mirrored_x_y_w_h[1], lborder4_mirrored_x_y_w_h[2], lborder4_mirrored_x_y_w_h[3], "black")
 
 
   def get_mirrored_x_y_w_h(self, obj):
     return [self.width-(obj.x-2)-obj.w, obj.y, obj.w, obj.h]
+
+  def set_active_and_inactive_color_by_hue(self, hue):
+    hsv_color = [hue,1,0.75]
+    rgb_color = colorsys.hsv_to_rgb(hsv_color[0], hsv_color[1], hsv_color[2])
+    hex_color = ('#%02x%02x%02x'%(round(rgb_color[0]*255),round(rgb_color[1]*255),round(rgb_color[2]*255)))
+
+    self.hex_color_active = hex_color
+    self.hsv_color_active = hsv_color
+
+    hsv_color = [hue,1,0.5]
+    rgb_color = colorsys.hsv_to_rgb(hsv_color[0], hsv_color[1], hsv_color[2])
+    hex_color = ('#%02x%02x%02x'%(round(rgb_color[0]*255),round(rgb_color[1]*255),round(rgb_color[2]*255)))
+
+    self.hex_color_inactive = hex_color
+    self.hsv_color_inactive = hsv_color
 
 class App:
   def __init__(self):
@@ -309,14 +312,20 @@ class App:
             self.tk_root.title("press x to change, trigger mode:"+str(self.trigger_mode)) 
 
             if(self.dualsense.state.triangle):
-              #self.dualsense.light.setColorI(random.randint(0,255),random.randint(0,255), random.randint(0,255))
-              random_color = colorsys.hsv_to_rgb((1/100)*random.randint(0,100),1,1)
-              #self.dualsense.light.setColorI(int(random_color[0]*255), int(random_color[1]*255), int(random_color[2]*255))
-              self.dualsense.light.setColorI(int(random_color[0]*255), int(random_color[1]*255), int(random_color[2]*255))
+                if((self.render_id)%10== 0):
+                    #self.dualsense.light.setColorI(random.randint(0,255),random.randint(0,255), random.randint(0,255))
+                    random_hsv = [(1/100)*random.randint(0,100),1,1]
+                    self.controller_pixel_object.set_active_and_inactive_color_by_hue(random_hsv[0])
+                    random_color = colorsys.hsv_to_rgb(random_hsv[0], random_hsv[1], random_hsv[2])
+                    #self.dualsense.light.setColorI(int(random_color[0]*255), int(random_color[1]*255), int(random_color[2]*255))
+                    self.dualsense.light.setColorI(int(random_color[0]*255), int(random_color[1]*255), int(random_color[2]*255))
+                    for obj in gc.get_objects():
+                      if isinstance(obj, PixelObject):
+                        obj.color = self.controller_pixel_object.hex_color_inactive
               
               #print(Brightness.__dict__)#{'_generate_next_value_': <function Flag._generate_next_value_ at 0x00000225991D83A0>, '__module__': 'pydualsense.enums', '__doc__': 'An enumeration.', '_member_names_': ['high', 'medium', 'low'], '_member_map_': {'high': <Brightness.high: 0>, 'medium': <Brightness.medium: 1>, 'low': <Brightness.low: 2>}, '_member_type_': <class 'int'>, '_value2member_map_': {0: <Brightness.high: 0>, 1: <Brightness.medium: 1>, 2: <Brightness.low: 2>}, 'high': <Brightness.high: 0>, 'medium': <Brightness.medium: 1>, 'low': <Brightness.low: 2>, '__new__': <function Enum.__new__ at 0x00000225991D5CA0>}
             else:
-              if(int(self.render_id/20)%2 == 0):
+              if(self.odd_frame_ids(20)):
                 #autopy.mouse.move(200,200)
                 self.dualsense.light.setBrightness(Brightness.low)
               else:
@@ -347,8 +356,10 @@ class App:
             if(self.dualsense.state.touchBtn):
               autopy.mouse.click()
 
+            self.controller_pixel_object.touchpadfinger1.color = self.controller_pixel_object.hex_color_inactive
 
             if(self.dualsense.state.trackPadTouch0.isActive == True):
+              self.controller_pixel_object.touchpadfinger1.color = self.controller_pixel_object.hex_color_active
               if(self.touch0_down_autopy_mouse_location == None):
                 self.touch0_down_autopy_mouse_location = autopy.mouse.location() 
                 self.touch0_down_dualsense_state_trackpadtouch0_x = self.dualsense.state.trackPadTouch0.X
@@ -374,7 +385,7 @@ class App:
               
             self.tk_root.update_idletasks()
             self.tk_root.update()
-            time.sleep(0.01)
+            time.sleep(0.001)
 
             #self.dualsense.light.setPulseOption(PulseOptions.FadeBlue)
 
@@ -384,6 +395,9 @@ class App:
 
       except KeyboardInterrupt:
         pass
+
+  def odd_frame_ids(self, frame_ids):
+      return int(self.render_id/frame_ids)%2 == 0
 
 
 

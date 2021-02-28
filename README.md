@@ -1,3 +1,14 @@
+```bash 
+pip install tkinter
+```
+```bash 
+pip install autopy
+```
+```bash 
+python ./examples/controller_demo.py
+```
+![](controllergui.PNG)
+
 # pydualsense
 control your dualsense through python. using the hid library this package implements the report features for controlling your new PS5 controller. 
 
